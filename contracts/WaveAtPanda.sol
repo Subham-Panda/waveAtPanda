@@ -30,10 +30,7 @@ contract WaveAtPanda {
 
     function wave(string memory _message) public {
 
-        require(
-            lastWavedAt[msg.sender] + 15 minutes < block.timestamp,
-            "Wait 15m"
-        );
+        require(lastWavedAt[msg.sender] + 5 minutes < block.timestamp, "Must wait 5 minutes before waving again.");
 
         lastWavedAt[msg.sender] = block.timestamp;
 
