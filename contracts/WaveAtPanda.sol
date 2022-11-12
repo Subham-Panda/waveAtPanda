@@ -7,6 +7,8 @@ import "hardhat/console.sol";
 contract WaveAtPanda {
     uint256 numOfWaves;
 
+    uint256 private seed;
+
     event NewWave(address indexed from, uint256 timestamp, string message);
 
     struct Wave {
@@ -19,6 +21,9 @@ contract WaveAtPanda {
 
     constructor() payable {
         console.log("Hi I am WaveAtPanda Smart Contract");
+
+        //setting the initial seed
+        seed = (block.timestamp + block.difficulty) % 100;
     }
 
     function wave(string memory _message) public {
@@ -27,16 +32,24 @@ contract WaveAtPanda {
 
         waves.push(Wave(msg.sender, _message, block.timestamp));
 
+        // Generate a new seed for the next user that sends a wave
+        seed = (block.difficulty + block.timestamp + seed) % 100;
+        console.log("Random # generated: %d", seed);
+
+        if (seed < 50) {
+            console.log("%s won!", msg.sender); 
+
+            // The same code we had before to send the prize.
+            uint256 prizeAmount = 0.0000001 ether;
+            require(
+                prizeAmount <= address(this).balance,
+                "Trying to withdraw more money than the contract has."
+            );
+            (bool success, ) = (msg.sender).call{value: prizeAmount}("");
+            require(success, "Failed to withdraw money from contract.");
+        }
+
         emit NewWave(msg.sender, block.timestamp, _message);
-
-        uint256 prizeAmount = 0.0000001 ether;
-        require(
-            prizeAmount <= address(this).balance,
-            "Trying to transfer more money than present in the contract"
-        );
-
-        (bool success, ) = (msg.sender).call{value: prizeAmount}("");
-        require(success, "Failed to send money from contract");
     }
 
     function getAllWaves() public view returns (Wave[] memory) {
