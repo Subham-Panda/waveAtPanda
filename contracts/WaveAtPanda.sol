@@ -17,7 +17,7 @@ contract WaveAtPanda {
 
     Wave[] waves;
 
-    constructor() {
+    constructor() payable {
         console.log("Hi I am WaveAtPanda Smart Contract");
     }
 
@@ -28,6 +28,15 @@ contract WaveAtPanda {
         waves.push(Wave(msg.sender, _message, block.timestamp));
 
         emit NewWave(msg.sender, block.timestamp, _message);
+
+        uint256 prizeAmount = 0.0000001 ether;
+        require(
+            prizeAmount <= address(this).balance,
+            "Trying to transfer more money than present in the contract"
+        );
+
+        (bool success, ) = (msg.sender).call{value: prizeAmount}("");
+        require(success, "Failed to send money from contract");
     }
 
     function getAllWaves() public view returns (Wave[] memory) {
